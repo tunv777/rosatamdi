@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rosa Tamdi - Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .game-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      background: #16213e;
+      border-radius: 16px;
+      padding: 14px 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+
+    .game-item:active {
+      transform: scale(0.95);
+    }
+
+    .game-item img {
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .iframe-topbar a {
+      font-size: 13px;
+      color: #a8b2d1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    /* Iframe overlay */
+    .iframe-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .iframe-overlay.active {
+      display: flex;
+    }
+
+    .iframe-phone {
+      width: 375px;
+      height: 90vh;
+      max-height: 812px;
+      background: #000;
+      border-radius: 40px;
+      border: 4px solid #333;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .iframe-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #16213e;
+      flex-shrink: 0;
+    }
+
+    .iframe-topbar .iframe-url {
+      font-size: 12px;
+      color: #8892b0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .btn-close {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-left: 10px;
+    }
+
+    .iframe-phone iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
+
+    @media (max-width: 480px) {
+      .iframe-phone {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        border: none;
+      }
+      .iframe-overlay {
+        background: #000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-grid" id="gameGrid"></div>
+
+  <div class="iframe-overlay" id="iframeOverlay" onclick="if(event.target===this)closeGame()">
+    <div class="iframe-phone">
+      <div class="iframe-topbar">
+        <span class="iframe-url" id="iframeTitle"></span>
+        <button class="btn-close" onclick="closeGame()">Close</button>
+      </div>
+      <iframe id="gameIframe" src="" allow="fullscreen; autoplay"></iframe>
+    </div>
+  </div>
+
+  <script src="url.js"></script>
+  <script>
+    const grid = document.getElementById('gameGrid');
+    const overlay = document.getElementById('iframeOverlay');
+    const gameIframe = document.getElementById('gameIframe');
+
+    function openGame(link) {
+      var fullUrl = 'https://' + link;
+      gameIframe.src = fullUrl;
+      overlay.classList.add('active');
+    }
+
+    function closeGame() {
+      overlay.classList.remove('active');
+      gameIframe.src = '';
+    }
+
+    url.forEach((link, i) => {
+      const div = document.createElement('div');
+      div.className = 'game-item';
+      div.onclick = function() { openGame(link); };
+      div.innerHTML =
+        '<img src="icon/' + (i + 1) + '.png" alt="' + link + '">';
+      grid.appendChild(div);
+    });
+  </script>
+</body>
+</html>
