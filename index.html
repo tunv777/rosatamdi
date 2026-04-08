@@ -1,185 +1,2421 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rosa Tamdi - Game</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FamilyGuard - Parental Control App Design</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1a1a2e;
-      color: #fff;
-      min-height: 100vh;
-    }
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818CF8;
+            --primary-dark: #3730A3;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
 
-    .game-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding: 16px;
-      max-width: 500px;
-      margin: 0 auto;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
 
-    .game-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-decoration: none;
-      background: #16213e;
-      border-radius: 16px;
-      padding: 14px 8px;
-      transition: transform 0.15s, box-shadow 0.15s;
-      cursor: pointer;
-    }
+        /* ===== NAVIGATION ===== */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary-dark);
+            color: white;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        .top-nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            height: 60px;
+            gap: 32px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+        }
+        .logo span { color: #A5B4FC; }
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+        }
+        .nav-tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+        }
+        .nav-tab:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-tab.active { background: rgba(255,255,255,0.2); color: white; }
 
-    .game-item:active {
-      transform: scale(0.95);
-    }
+        /* ===== CONTENT ===== */
+        .content { margin-top: 60px; padding: 32px 24px; max-width: 1400px; margin-left: auto; margin-right: auto; }
+        .section { display: none; }
+        .section.active { display: block; }
 
-    .game-item img {
-      width: 80px;
-      height: 80px;
-      border-radius: 18px;
-      object-fit: cover;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary-dark);
+        }
+        .section-desc {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
 
-    .iframe-topbar a {
-      font-size: 13px;
-      color: #a8b2d1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      text-decoration: none;
-    }
+        /* ===== PHONE MOCKUP ===== */
+        .mockup-row {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        .mockup-wrapper {
+            text-align: center;
+        }
+        .mockup-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .phone {
+            width: 375px;
+            height: 812px;
+            background: var(--card);
+            border-radius: 40px;
+            border: 8px solid #1E293B;
+            overflow: hidden;
+            box-shadow: var(--shadow), 0 0 0 2px #334155;
+            position: relative;
+        }
+        .phone-notch {
+            width: 150px;
+            height: 30px;
+            background: #1E293B;
+            border-radius: 0 0 20px 20px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+        .phone-screen {
+            height: 100%;
+            overflow-y: auto;
+            background: #F1F5F9;
+        }
+        .phone-screen::-webkit-scrollbar { width: 0; }
 
-    /* Iframe overlay */
-    .iframe-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
+        /* ===== STATUS BAR ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 24px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--primary);
+            color: white;
+        }
+        .status-icons { display: flex; gap: 4px; align-items: center; }
 
-    .iframe-overlay.active {
-      display: flex;
-    }
+        /* ===== APP HEADER ===== */
+        .app-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px 20px;
+        }
+        .app-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .app-header p {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+        .app-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
 
-    .iframe-phone {
-      width: 375px;
-      height: 90vh;
-      max-height: 812px;
-      background: #000;
-      border-radius: 40px;
-      border: 4px solid #333;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    }
+        /* ===== CHILD SELECTOR ===== */
+        .child-selector {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            background: white;
+            overflow-x: auto;
+        }
+        .child-avatar {
+            text-align: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .child-avatar .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 4px;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .child-avatar.active .avatar {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+        }
+        .child-avatar .name {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .child-avatar.active .name { color: var(--primary); }
+        .child-avatar .avatar.girl { background: #FCE7F3; }
+        .child-avatar .avatar.boy { background: #DBEAFE; }
+        .child-avatar .avatar.add { background: #F1F5F9; font-size: 18px; color: var(--text-secondary); }
 
-    .iframe-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      background: #16213e;
-      flex-shrink: 0;
-    }
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 12px 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
 
-    .iframe-topbar .iframe-url {
-      font-size: 12px;
-      color: #8892b0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-    }
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .quick-action {
+            background: #F8FAFC;
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1.5px solid var(--border);
+        }
+        .quick-action:hover { border-color: var(--primary-light); background: #EEF2FF; }
+        .quick-action .qa-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+        .quick-action .qa-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .quick-action .qa-status {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
 
-    .btn-close {
-      background: #e94560;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-left: 10px;
-    }
+        /* ===== TOGGLE ===== */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-info { display: flex; align-items: center; gap: 10px; }
+        .toggle-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .toggle-text .t-name { font-size: 13px; font-weight: 600; }
+        .toggle-text .t-desc { font-size: 11px; color: var(--text-secondary); }
+        .toggle-switch {
+            width: 44px;
+            height: 26px;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .toggle-switch.on { background: var(--success); }
+        .toggle-switch.off { background: #CBD5E1; }
+        .toggle-switch::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            top: 3px;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.on::after { left: 21px; }
+        .toggle-switch.off::after { left: 3px; }
 
-    .iframe-phone iframe {
-      flex: 1;
-      width: 100%;
-      border: none;
-    }
+        /* ===== USAGE CHART ===== */
+        .usage-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 100px;
+            padding: 8px 0;
+        }
+        .bar-group { flex: 1; text-align: center; }
+        .bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            background: var(--primary-light);
+            min-height: 4px;
+            transition: all 0.3s;
+        }
+        .bar.high { background: var(--danger); }
+        .bar-label { font-size: 9px; color: var(--text-secondary); margin-top: 4px; }
+        .bar-value { font-size: 9px; color: var(--text); font-weight: 600; margin-bottom: 2px; }
 
-    @media (max-width: 480px) {
-      .iframe-phone {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        border-radius: 0;
-        border: none;
-      }
-      .iframe-overlay {
-        background: #000;
-      }
-    }
-  </style>
+        /* ===== APP LIST ===== */
+        .app-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F8FAFC;
+        }
+        .app-item:last-child { border-bottom: none; }
+        .app-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .app-info { flex: 1; }
+        .app-name { font-size: 13px; font-weight: 600; }
+        .app-time { font-size: 11px; color: var(--text-secondary); }
+        .app-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .app-status.allowed { background: #D1FAE5; color: #065F46; }
+        .app-status.blocked { background: #FEE2E2; color: #991B1B; }
+        .app-status.limited { background: #FEF3C7; color: #92400E; }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #E2E8F0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 24px;
+            border-top: 1px solid var(--border);
+        }
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 4px 12px;
+        }
+        .nav-item .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-item .nav-label { font-size: 10px; color: var(--text-secondary); font-weight: 600; }
+        .nav-item.active .nav-label { color: var(--primary); }
+
+        /* ===== LOCK SCREEN ===== */
+        .lock-overlay {
+            background: linear-gradient(135deg, #1E1B4B, #312E81);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        .lock-icon-big {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .lock-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .lock-msg {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        .lock-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ===== SCHEDULE ===== */
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F8FAFC;
+        }
+        .schedule-time {
+            background: #EEF2FF;
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: center;
+            min-width: 60px;
+        }
+        .schedule-time .time { font-size: 13px; font-weight: 700; color: var(--primary); }
+        .schedule-time .period { font-size: 9px; color: var(--primary-light); }
+        .schedule-info { flex: 1; }
+        .schedule-name { font-size: 13px; font-weight: 600; }
+        .schedule-detail { font-size: 11px; color: var(--text-secondary); }
+
+        /* ===== WEB FILTER ===== */
+        .web-category {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #F8FAFC;
+        }
+        .web-cat-info { display: flex; align-items: center; gap: 10px; }
+        .web-cat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .badge.safe { background: #D1FAE5; color: #065F46; }
+        .badge.warn { background: #FEF3C7; color: #92400E; }
+        .badge.block { background: #FEE2E2; color: #991B1B; }
+
+        /* ===== LOCATION ===== */
+        .map-placeholder {
+            background: linear-gradient(135deg, #DBEAFE, #E0E7FF);
+            border-radius: 12px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .map-pin {
+            position: absolute;
+            animation: bounce 1.5s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .location-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #F0FDF4;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        .location-info .loc-status { color: var(--success); font-weight: 600; }
+
+        /* ===== ALERTS ===== */
+        .alert-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #FFF7ED;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--warning);
+        }
+        .alert-item.danger { background: #FEF2F2; border-left-color: var(--danger); }
+        .alert-item .alert-icon { font-size: 18px; }
+        .alert-item .alert-text { font-size: 12px; flex: 1; }
+        .alert-item .alert-time { font-size: 10px; color: var(--text-secondary); white-space: nowrap; }
+
+        /* ===== CHILD APP ===== */
+        .child-header {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 16px 20px 20px;
+        }
+        .child-stat-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .child-stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .child-stat-label { font-size: 12px; opacity: 0.9; }
+        .child-stat-value { font-size: 14px; font-weight: 700; }
+
+        /* ===== TECH SECTION ===== */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .tech-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--primary);
+        }
+        .tech-card h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tech-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .tech-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .tech-card li:last-child { border-bottom: none; }
+        .tech-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #EEF2FF;
+            color: var(--primary);
+            margin-right: 4px;
+        }
+
+        /* ===== ARCHITECTURE DIAGRAM ===== */
+        .arch-diagram {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 32px;
+            overflow-x: auto;
+        }
+        .arch-diagram h3 {
+            font-size: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .arch-layers {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .arch-layer {
+            border-radius: 12px;
+            padding: 16px 20px;
+            position: relative;
+        }
+        .arch-layer-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .arch-boxes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .arch-box {
+            background: rgba(255,255,255,0.85);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 100px;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .arch-box small { display: block; font-weight: 400; color: #666; margin-top: 2px; font-size: 10px; }
+        .layer-client { background: #DBEAFE; }
+        .layer-client .arch-layer-title { color: #1E40AF; }
+        .layer-api { background: #D1FAE5; }
+        .layer-api .arch-layer-title { color: #065F46; }
+        .layer-services { background: #FEF3C7; }
+        .layer-services .arch-layer-title { color: #92400E; }
+        .layer-data { background: #EDE9FE; }
+        .layer-data .arch-layer-title { color: #5B21B6; }
+        .layer-infra { background: #FCE7F3; }
+        .layer-infra .arch-layer-title { color: #9D174D; }
+        .arch-arrow {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 20px;
+            margin: -4px 0;
+        }
+
+        /* ===== DB SCHEMA ===== */
+        .db-table {
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .db-table-header {
+            background: var(--primary-dark);
+            color: white;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .db-field {
+            display: flex;
+            padding: 8px 16px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+            gap: 8px;
+        }
+        .db-field:last-child { border-bottom: none; }
+        .db-field-name { font-weight: 600; min-width: 120px; font-family: monospace; }
+        .db-field-type { color: var(--primary); font-family: monospace; min-width: 80px; }
+        .db-field-desc { color: var(--text-secondary); }
+        .db-key { color: var(--warning); font-size: 10px; font-weight: 700; margin-left: 4px; }
+
+        /* ===== API TABLE ===== */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .api-table th {
+            background: #F1F5F9;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .api-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+        .method.get { background: #DBEAFE; color: #1D4ED8; }
+        .method.post { background: #D1FAE5; color: #047857; }
+        .method.put { background: #FEF3C7; color: #B45309; }
+        .method.delete { background: #FEE2E2; color: #DC2626; }
+        .endpoint { font-family: monospace; font-size: 12px; color: var(--text); }
+
+        /* ===== FLOW DIAGRAM ===== */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+        }
+        .flow-step {
+            background: var(--card);
+            border: 2px solid var(--primary-light);
+            border-radius: 12px;
+            padding: 12px 24px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 200px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .flow-step.start { background: #EEF2FF; border-color: var(--primary); }
+        .flow-step.decision {
+            transform: rotate(0deg);
+            border-radius: 4px;
+            background: #FEF3C7;
+            border-color: var(--warning);
+        }
+        .flow-step.action { background: #D1FAE5; border-color: var(--success); }
+        .flow-step.end { background: #FEE2E2; border-color: var(--danger); }
+        .flow-arrow { color: var(--text-secondary); font-size: 18px; }
+        .flow-label { font-size: 10px; color: var(--text-secondary); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .mockup-row { flex-direction: column; align-items: center; }
+            .phone { width: 340px; height: 740px; }
+            .tech-grid { grid-template-columns: 1fr; }
+            .nav-tabs { gap: 2px; }
+            .nav-tab { padding: 6px 10px; font-size: 12px; }
+        }
+
+        /* ===== FEATURE HIGHLIGHT ===== */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+        .feature-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .feature-icon { font-size: 32px; margin-bottom: 10px; }
+        .feature-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .feature-desc { font-size: 12px; color: var(--text-secondary); }
+    </style>
 </head>
 <body>
-  <div class="game-grid" id="gameGrid"></div>
 
-  <div class="iframe-overlay" id="iframeOverlay" onclick="if(event.target===this)closeGame()">
-    <div class="iframe-phone">
-      <div class="iframe-topbar">
-        <span class="iframe-url" id="iframeTitle"></span>
-        <button class="btn-close" onclick="closeGame()">Close</button>
-      </div>
-      <iframe id="gameIframe" src="" allow="fullscreen; autoplay"></iframe>
+<!-- ===== TOP NAVIGATION ===== -->
+<nav class="top-nav">
+    <div class="top-nav-inner">
+        <div class="logo">Family<span>Guard</span></div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('overview')">Tong Quan</button>
+            <button class="nav-tab" onclick="showSection('parent-app')">Parent App</button>
+            <button class="nav-tab" onclick="showSection('child-app')">Child App</button>
+            <button class="nav-tab" onclick="showSection('features')">Tinh Nang</button>
+            <button class="nav-tab" onclick="showSection('architecture')">Kien Truc</button>
+            <button class="nav-tab" onclick="showSection('database')">Database</button>
+            <button class="nav-tab" onclick="showSection('api')">API</button>
+            <button class="nav-tab" onclick="showSection('flow')">User Flow</button>
+        </div>
     </div>
-  </div>
+</nav>
 
-  <script src="url.js"></script>
-  <script>
-    const grid = document.getElementById('gameGrid');
-    const overlay = document.getElementById('iframeOverlay');
-    const gameIframe = document.getElementById('gameIframe');
+<!-- ===== CONTENT ===== -->
+<div class="content">
 
-    function openGame(link) {
-      var fullUrl = 'https://' + link;
-      gameIframe.src = fullUrl;
-      overlay.classList.add('active');
+    <!-- ========== OVERVIEW ========== -->
+    <div id="overview" class="section active">
+        <h1 class="section-title">FamilyGuard - Parental Control App</h1>
+        <p class="section-desc">Ung dung quan ly thiet bi con cai cho cha me - Cross-platform Android & iOS</p>
+
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-icon">📱</div>
+                <div class="feature-name">Quan Ly Thiet Bi</div>
+                <div class="feature-desc">Lock/Unlock man hinh tu xa, kiem soat thoi gian su dung</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-name">Theo Doi Su Dung</div>
+                <div class="feature-desc">Xem bao cao chi tiet app nao duoc su dung, bao lau</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🌐</div>
+                <div class="feature-name">Loc Web</div>
+                <div class="feature-desc">Whitelist/Blacklist website, loc noi dung khong phu hop</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⏰</div>
+                <div class="feature-name">Lich Hen Gio</div>
+                <div class="feature-desc">Dat lich su dung thiet bi theo ngay, gio cu the</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📍</div>
+                <div class="feature-name">Vi Tri GPS</div>
+                <div class="feature-desc">Theo doi vi tri con, tao vung an toan (geofence)</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔔</div>
+                <div class="feature-name">Canh Bao</div>
+                <div class="feature-desc">Thong bao khi con truy cap noi dung khong phu hop</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-name">App Control</div>
+                <div class="feature-desc">Cho phep / Chan cai dat ung dung moi, gioi han thoi gian</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">👨‍👩‍👧‍👦</div>
+                <div class="feature-name">Nhieu Con</div>
+                <div class="feature-desc">Quan ly nhieu thiet bi con cai tu 1 tai khoan cha me</div>
+            </div>
+        </div>
+
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>🎯 Target Users</h3>
+                <ul>
+                    <li>👨‍👩‍👧 Cha me co con tu 3-16 tuoi</li>
+                    <li>📱 Con su dung smartphone/tablet</li>
+                    <li>🏫 Truong hoc muon quan ly thiet bi hoc sinh</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>💰 Business Model</h3>
+                <ul>
+                    <li>🆓 <span class="tech-tag">Free</span> 1 thiet bi, tinh nang co ban</li>
+                    <li>⭐ <span class="tech-tag">Premium</span> $4.99/thang - 5 thiet bi, full features</li>
+                    <li>👨‍👩‍👧‍👦 <span class="tech-tag">Family</span> $9.99/thang - 10 thiet bi, priority support</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PARENT APP ========== -->
+    <div id="parent-app" class="section">
+        <h1 class="section-title">Parent App - Wireframes</h1>
+        <p class="section-desc">Giao dien app cho cha me - Quan ly va giam sat thiet bi con</p>
+
+        <div class="mockup-row">
+            <!-- Dashboard Screen -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">1. Dashboard</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <div class="status-icons">
+                                <span>📶</span><span>🔋</span>
+                            </div>
+                        </div>
+                        <div class="app-header">
+                            <div class="app-header-row">
+                                <div>
+                                    <h2>FamilyGuard</h2>
+                                    <p>Xin chao, Tu Nguyen!</p>
+                                </div>
+                                <div class="header-icon">⚙️</div>
+                            </div>
+                        </div>
+
+                        <div class="child-selector">
+                            <div class="child-avatar active">
+                                <div class="avatar girl">👧</div>
+                                <div class="name">Mai Anh</div>
+                            </div>
+                            <div class="child-avatar">
+                                <div class="avatar boy">👦</div>
+                                <div class="name">Minh</div>
+                            </div>
+                            <div class="child-avatar">
+                                <div class="avatar add">+</div>
+                                <div class="name">Them</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#EEF2FF;color:var(--primary)">📱</div>
+                                Trang Thai Thiet Bi
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+                                <div>
+                                    <div style="font-size:13px;font-weight:600">iPhone 14 - Mai Anh</div>
+                                    <div style="font-size:11px;color:var(--success);font-weight:600">● Online - Dang hoat dong</div>
+                                </div>
+                                <div style="text-align:right">
+                                    <div style="font-size:11px;color:var(--text-secondary)">Pin</div>
+                                    <div style="font-size:15px;font-weight:700;color:var(--success)">72%</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:72%;background:var(--success)"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEF3C7;color:var(--warning)">⚡</div>
+                                Thao Tac Nhanh
+                            </div>
+                            <div class="quick-actions">
+                                <div class="quick-action">
+                                    <div class="qa-icon">🔒</div>
+                                    <div class="qa-label">Khoa Man Hinh</div>
+                                    <div class="qa-status">Dang mo khoa</div>
+                                </div>
+                                <div class="quick-action">
+                                    <div class="qa-icon">📍</div>
+                                    <div class="qa-label">Vi Tri</div>
+                                    <div class="qa-status">Tai nha</div>
+                                </div>
+                                <div class="quick-action">
+                                    <div class="qa-icon">📊</div>
+                                    <div class="qa-label">Bao Cao</div>
+                                    <div class="qa-status">2h30 hom nay</div>
+                                </div>
+                                <div class="quick-action">
+                                    <div class="qa-icon">🔔</div>
+                                    <div class="qa-label">Canh Bao</div>
+                                    <div class="qa-status" style="color:var(--danger)">2 moi</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#D1FAE5;color:var(--success)">📊</div>
+                                Thoi Gian Su Dung Hom Nay
+                            </div>
+                            <div style="text-align:center;margin-bottom:8px">
+                                <span style="font-size:28px;font-weight:800;color:var(--primary)">2h 30m</span>
+                                <span style="font-size:12px;color:var(--text-secondary)"> / 4h gioi han</span>
+                            </div>
+                            <div class="progress-bar" style="height:8px">
+                                <div class="progress-fill" style="width:62%;background:linear-gradient(90deg,var(--primary),var(--primary-light))"></div>
+                            </div>
+                            <div class="usage-chart">
+                                <div class="bar-group">
+                                    <div class="bar-value">1h</div>
+                                    <div class="bar" style="height:30px"></div>
+                                    <div class="bar-label">T2</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-value">3h</div>
+                                    <div class="bar high" style="height:70px"></div>
+                                    <div class="bar-label">T3</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-value">2h</div>
+                                    <div class="bar" style="height:50px"></div>
+                                    <div class="bar-label">T4</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-value">1.5</div>
+                                    <div class="bar" style="height:38px"></div>
+                                    <div class="bar-label">T5</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-value">4h</div>
+                                    <div class="bar high" style="height:95px"></div>
+                                    <div class="bar-label">T6</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-value">3h</div>
+                                    <div class="bar" style="height:70px"></div>
+                                    <div class="bar-label">T7</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-value">2.5</div>
+                                    <div class="bar" style="height:60px"></div>
+                                    <div class="bar-label">CN</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEE2E2;color:var(--danger)">🔔</div>
+                                Canh Bao Gan Day
+                            </div>
+                            <div class="alert-item danger">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-text"><b>Mai Anh</b> truy cap web bi chan: game-hack.com</span>
+                                <span class="alert-time">10 ph</span>
+                            </div>
+                            <div class="alert-item">
+                                <span class="alert-icon">⏰</span>
+                                <span class="alert-text"><b>Mai Anh</b> vuot qua 80% thoi gian cho phep</span>
+                                <span class="alert-time">1h</span>
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item active">
+                                <div class="nav-icon">🏠</div>
+                                <div class="nav-label">Home</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">📱</div>
+                                <div class="nav-label">Apps</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">🌐</div>
+                                <div class="nav-label">Web</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">📍</div>
+                                <div class="nav-label">Vi Tri</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">⚙️</div>
+                                <div class="nav-label">Cai Dat</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Control Screen -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">2. Quan Ly App</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <div class="status-icons"><span>📶</span><span>🔋</span></div>
+                        </div>
+                        <div class="app-header">
+                            <div class="app-header-row">
+                                <div>
+                                    <h2>Quan Ly Ung Dung</h2>
+                                    <p>Mai Anh - iPhone 14</p>
+                                </div>
+                                <div class="header-icon">🔍</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEF3C7;color:var(--warning)">⏱️</div>
+                                Gioi Han Tong Thoi Gian
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div>
+                                    <div style="font-size:24px;font-weight:800;color:var(--primary)">4 gio / ngay</div>
+                                    <div style="font-size:11px;color:var(--text-secondary)">Con lai: 1h 30m hom nay</div>
+                                </div>
+                                <div style="font-size:12px;color:var(--primary);font-weight:600;cursor:pointer">Chinh sua →</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#DBEAFE;color:#3B82F6">📱</div>
+                                Ung Dung Da Cai
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#FF6B6B;color:white">▶️</div>
+                                <div class="app-info">
+                                    <div class="app-name">YouTube</div>
+                                    <div class="app-time">45 phut hom nay | Gioi han: 1h</div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width:75%;background:var(--warning)"></div></div>
+                                </div>
+                                <div class="app-status limited">Gioi han</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#1DA1F2;color:white">🐦</div>
+                                <div class="app-info">
+                                    <div class="app-name">TikTok</div>
+                                    <div class="app-time">Bi chan boi cha me</div>
+                                </div>
+                                <div class="app-status blocked">Da chan</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#4CAF50;color:white">💬</div>
+                                <div class="app-info">
+                                    <div class="app-name">Zalo</div>
+                                    <div class="app-time">30 phut hom nay</div>
+                                </div>
+                                <div class="app-status allowed">Cho phep</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#FF9800;color:white">📸</div>
+                                <div class="app-info">
+                                    <div class="app-name">Instagram</div>
+                                    <div class="app-time">Gioi han: 30 phut/ngay</div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width:40%;background:var(--success)"></div></div>
+                                </div>
+                                <div class="app-status limited">Gioi han</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#7C4DFF;color:white">🎮</div>
+                                <div class="app-info">
+                                    <div class="app-name">Roblox</div>
+                                    <div class="app-time">Chi su dung cuoi tuan</div>
+                                </div>
+                                <div class="app-status limited">Gioi han</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#2196F3;color:white">📚</div>
+                                <div class="app-info">
+                                    <div class="app-name">Google Classroom</div>
+                                    <div class="app-time">Khong gioi han</div>
+                                </div>
+                                <div class="app-status allowed">Cho phep</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#FF5722;color:white">🎬</div>
+                                <div class="app-info">
+                                    <div class="app-name">Netflix</div>
+                                    <div class="app-time">Gioi han: 1h/ngay</div>
+                                </div>
+                                <div class="app-status limited">Gioi han</div>
+                            </div>
+
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#607D8B;color:white">⚙️</div>
+                                <div class="app-info">
+                                    <div class="app-name">Cai Dat He Thong</div>
+                                    <div class="app-time">Chan go cai dat</div>
+                                </div>
+                                <div class="app-status blocked">Da chan</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEE2E2;color:var(--danger)">🚫</div>
+                                Yeu Cau Cai Dat Moi
+                            </div>
+                            <div class="alert-item">
+                                <span class="alert-icon">📥</span>
+                                <span class="alert-text"><b>Mai Anh</b> yeu cau cai dat <b>Snapchat</b></span>
+                                <span class="alert-time" style="display:flex;gap:4px">
+                                    <span style="background:var(--success);color:white;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;cursor:pointer">✓</span>
+                                    <span style="background:var(--danger);color:white;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;cursor:pointer">✗</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+                            <div class="nav-item active"><div class="nav-icon">📱</div><div class="nav-label">Apps</div></div>
+                            <div class="nav-item"><div class="nav-icon">🌐</div><div class="nav-label">Web</div></div>
+                            <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Vi Tri</div></div>
+                            <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cai Dat</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Web Filter & Schedule -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">3. Loc Web & Lich</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <div class="status-icons"><span>📶</span><span>🔋</span></div>
+                        </div>
+                        <div class="app-header">
+                            <div class="app-header-row">
+                                <div>
+                                    <h2>Web & Lich Trinh</h2>
+                                    <p>Mai Anh - iPhone 14</p>
+                                </div>
+                                <div class="header-icon">➕</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#D1FAE5;color:var(--success)">🛡️</div>
+                                Bo Loc Noi Dung Web
+                            </div>
+
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#D1FAE5">🛡️</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Safe Search</div>
+                                        <div class="t-desc">Loc ket qua tim kiem</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#FEE2E2">🔞</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Chan noi dung 18+</div>
+                                        <div class="t-desc">Tu dong phat hien va chan</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#FEF3C7">⚠️</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Chan quang cao</div>
+                                        <div class="t-desc">Loai bo quang cao khong phu hop</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#DBEAFE;color:#3B82F6">🌐</div>
+                                Danh Muc Website
+                            </div>
+
+                            <div class="web-category">
+                                <div class="web-cat-info">
+                                    <div class="web-cat-icon" style="background:#D1FAE5">📚</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600">Giao duc</div>
+                                        <div style="font-size:10px;color:var(--text-secondary)">Wikipedia, Khan Academy...</div>
+                                    </div>
+                                </div>
+                                <span class="badge safe">Cho phep</span>
+                            </div>
+
+                            <div class="web-category">
+                                <div class="web-cat-info">
+                                    <div class="web-cat-icon" style="background:#DBEAFE">🎬</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600">Giai tri</div>
+                                        <div style="font-size:10px;color:var(--text-secondary)">YouTube Kids, Disney+...</div>
+                                    </div>
+                                </div>
+                                <span class="badge warn">Gioi han</span>
+                            </div>
+
+                            <div class="web-category">
+                                <div class="web-cat-info">
+                                    <div class="web-cat-icon" style="background:#EDE9FE">💬</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600">Mang xa hoi</div>
+                                        <div style="font-size:10px;color:var(--text-secondary)">Facebook, Twitter...</div>
+                                    </div>
+                                </div>
+                                <span class="badge block">Da chan</span>
+                            </div>
+
+                            <div class="web-category">
+                                <div class="web-cat-info">
+                                    <div class="web-cat-icon" style="background:#FEE2E2">🎰</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600">Co bac / Nguoi lon</div>
+                                        <div style="font-size:10px;color:var(--text-secondary)">Tu dong chan</div>
+                                    </div>
+                                </div>
+                                <span class="badge block">Da chan</span>
+                            </div>
+
+                            <div class="web-category">
+                                <div class="web-cat-info">
+                                    <div class="web-cat-icon" style="background:#FEF3C7">🎮</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600">Tro choi online</div>
+                                        <div style="font-size:10px;color:var(--text-secondary)">Cuoi tuan only</div>
+                                    </div>
+                                </div>
+                                <span class="badge warn">Gioi han</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEF3C7;color:var(--warning)">⏰</div>
+                                Lich Su Dung Thiet Bi
+                            </div>
+
+                            <div class="schedule-item">
+                                <div class="schedule-time">
+                                    <div class="time">6:30</div>
+                                    <div class="period">SANG</div>
+                                </div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Mo khoa thiet bi</div>
+                                    <div class="schedule-detail">T2-T6 | Tu dong mo khoa</div>
+                                </div>
+                                <div class="toggle-switch on" style="flex-shrink:0"></div>
+                            </div>
+
+                            <div class="schedule-item">
+                                <div class="schedule-time">
+                                    <div class="time">7:30</div>
+                                    <div class="period">SANG</div>
+                                </div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Gio hoc - Chi app hoc tap</div>
+                                    <div class="schedule-detail">T2-T6 | Chan giai tri</div>
+                                </div>
+                                <div class="toggle-switch on" style="flex-shrink:0"></div>
+                            </div>
+
+                            <div class="schedule-item">
+                                <div class="schedule-time">
+                                    <div class="time">16:00</div>
+                                    <div class="period">CHIEU</div>
+                                </div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Gio tu do - Mo tat ca app</div>
+                                    <div class="schedule-detail">T2-T6 | Gioi han 2h</div>
+                                </div>
+                                <div class="toggle-switch on" style="flex-shrink:0"></div>
+                            </div>
+
+                            <div class="schedule-item">
+                                <div class="schedule-time">
+                                    <div class="time">21:00</div>
+                                    <div class="period">TOI</div>
+                                </div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Gio ngu - Khoa thiet bi</div>
+                                    <div class="schedule-detail">Hang ngay | Tu dong khoa</div>
+                                </div>
+                                <div class="toggle-switch on" style="flex-shrink:0"></div>
+                            </div>
+
+                            <div class="schedule-item">
+                                <div class="schedule-time">
+                                    <div class="time">8:00</div>
+                                    <div class="period">SANG</div>
+                                </div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Cuoi tuan - Gio tu do</div>
+                                    <div class="schedule-detail">T7-CN | Gioi han 4h</div>
+                                </div>
+                                <div class="toggle-switch on" style="flex-shrink:0"></div>
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+                            <div class="nav-item"><div class="nav-icon">📱</div><div class="nav-label">Apps</div></div>
+                            <div class="nav-item active"><div class="nav-icon">🌐</div><div class="nav-label">Web</div></div>
+                            <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Vi Tri</div></div>
+                            <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cai Dat</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Screen -->
+        <div class="mockup-row">
+            <div class="mockup-wrapper">
+                <div class="mockup-label">4. Vi Tri & Geofence</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <div class="status-icons"><span>📶</span><span>🔋</span></div>
+                        </div>
+                        <div class="app-header">
+                            <div class="app-header-row">
+                                <div>
+                                    <h2>Vi Tri Con</h2>
+                                    <p>Mai Anh - Cap nhat 2 phut truoc</p>
+                                </div>
+                                <div class="header-icon">🔄</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="map-placeholder">
+                                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#DBEAFE 0%,#C7D2FE 50%,#DDD6FE 100%)"></div>
+                                <div style="position:absolute;width:80%;height:80%;border:2px dashed rgba(79,70,229,0.3);border-radius:50%;top:10%;left:10%"></div>
+                                <div style="position:absolute;width:40%;height:40%;border:2px solid rgba(16,185,129,0.5);border-radius:50%;top:30%;left:30%;background:rgba(16,185,129,0.1)"></div>
+                                <div class="map-pin" style="font-size:32px;z-index:2">📍</div>
+                                <div style="position:absolute;bottom:8px;right:8px;background:white;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;z-index:2">Ban do minh hoa</div>
+                            </div>
+                            <div class="location-info">
+                                <div class="loc-status">📍 Dang o: Nha (Vung an toan)</div>
+                                <div style="margin-top:4px;color:var(--text-secondary)">123 Nguyen Hue, Q1, TP.HCM</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#D1FAE5;color:var(--success)">🏠</div>
+                                Vung An Toan (Geofence)
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#D1FAE5">🏠</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Nha</div>
+                                        <div class="t-desc">Ban kinh 200m</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#DBEAFE">🏫</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Truong hoc</div>
+                                        <div class="t-desc">Ban kinh 500m</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#FEF3C7">🏋️</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Lop hoc them</div>
+                                        <div class="t-desc">Ban kinh 300m</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#EDE9FE;color:#7C3AED">🕐</div>
+                                Lich Su Di Chuyen
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time"><div class="time">7:00</div><div class="period">SANG</div></div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name" style="color:var(--success)">→ Roi khoi Nha</div>
+                                    <div class="schedule-detail">Di chuyen ve huong truong</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time"><div class="time">7:20</div><div class="period">SANG</div></div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name" style="color:var(--primary)">→ Den Truong hoc</div>
+                                    <div class="schedule-detail">Vao vung an toan</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time"><div class="time">16:30</div><div class="period">CHIEU</div></div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name" style="color:var(--success)">→ Ve den Nha</div>
+                                    <div class="schedule-detail">Vao vung an toan</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+                            <div class="nav-item"><div class="nav-icon">📱</div><div class="nav-label">Apps</div></div>
+                            <div class="nav-item"><div class="nav-icon">🌐</div><div class="nav-label">Web</div></div>
+                            <div class="nav-item active"><div class="nav-icon">📍</div><div class="nav-label">Vi Tri</div></div>
+                            <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cai Dat</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Screen -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">5. Cai Dat</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <div class="status-icons"><span>📶</span><span>🔋</span></div>
+                        </div>
+                        <div class="app-header">
+                            <h2>Cai Dat</h2>
+                            <p>Quan ly tai khoan va thiet bi</p>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#EEF2FF;color:var(--primary)">👤</div>
+                                Tai Khoan
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#EEF2FF">👤</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Tu Nguyen</div>
+                                        <div class="t-desc">tunv.1107@gmail.com</div>
+                                    </div>
+                                </div>
+                                <span style="color:var(--text-secondary)">→</span>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#FEF3C7">⭐</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Goi Premium</div>
+                                        <div class="t-desc">5 thiet bi, full tinh nang</div>
+                                    </div>
+                                </div>
+                                <span style="color:var(--primary);font-size:12px;font-weight:600">Nang cap</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#D1FAE5;color:var(--success)">📱</div>
+                                Thiet Bi Con
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#FCE7F3">👧</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Mai Anh - iPhone 14</div>
+                                        <div class="t-desc" style="color:var(--success)">● Online</div>
+                                    </div>
+                                </div>
+                                <span style="color:var(--text-secondary)">→</span>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-icon" style="background:#DBEAFE">👦</div>
+                                    <div class="toggle-text">
+                                        <div class="t-name">Minh - Samsung A54</div>
+                                        <div class="t-desc" style="color:var(--text-secondary)">● Offline - 2h truoc</div>
+                                    </div>
+                                </div>
+                                <span style="color:var(--text-secondary)">→</span>
+                            </div>
+                            <div style="text-align:center;padding:12px">
+                                <span style="color:var(--primary);font-size:13px;font-weight:600;cursor:pointer">+ Them thiet bi moi</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEE2E2;color:var(--danger)">🔔</div>
+                                Thong Bao
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Canh bao noi dung</div>
+                                        <div class="t-desc">Thong bao khi con truy cap noi dung xau</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Canh bao vi tri</div>
+                                        <div class="t-desc">Khi con roi khoi vung an toan</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Bao cao hang ngay</div>
+                                        <div class="t-desc">Email tom tat hoat dong hang ngay</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Yeu cau cai dat app</div>
+                                        <div class="t-desc">Khi con muon cai app moi</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#F1F5F9;color:var(--text-secondary)">🔒</div>
+                                Bao Mat
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Ma PIN cha me</div>
+                                        <div class="t-desc">Can PIN de thay doi cai dat</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Xac thuc 2 yeu to</div>
+                                        <div class="t-desc">Bao ve tai khoan cha me</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-text">
+                                        <div class="t-name">Chan go cai dat</div>
+                                        <div class="t-desc">Con khong the go app FamilyGuard</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch on"></div>
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+                            <div class="nav-item"><div class="nav-icon">📱</div><div class="nav-label">Apps</div></div>
+                            <div class="nav-item"><div class="nav-icon">🌐</div><div class="nav-label">Web</div></div>
+                            <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Vi Tri</div></div>
+                            <div class="nav-item active"><div class="nav-icon">⚙️</div><div class="nav-label">Cai Dat</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CHILD APP ========== -->
+    <div id="child-app" class="section">
+        <h1 class="section-title">Child App - Wireframes</h1>
+        <p class="section-desc">Giao dien hien thi tren thiet bi cua con</p>
+
+        <div class="mockup-row">
+            <!-- Child Dashboard -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">1. Child Dashboard</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="status-bar" style="background:#059669">
+                            <span>9:41</span>
+                            <div class="status-icons"><span>📶</span><span>🔋</span></div>
+                        </div>
+                        <div class="child-header">
+                            <div class="app-header-row">
+                                <div>
+                                    <h2>Xin chao Mai Anh! 👋</h2>
+                                    <p>Han su dung: 1h 30m con lai</p>
+                                </div>
+                                <div style="width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px">👧</div>
+                            </div>
+                            <div class="child-stat-card">
+                                <div class="child-stat-row">
+                                    <span class="child-stat-label">Da su dung hom nay</span>
+                                    <span class="child-stat-value">2h 30m</span>
+                                </div>
+                                <div class="progress-bar" style="background:rgba(255,255,255,0.2)">
+                                    <div class="progress-fill" style="width:62%;background:white"></div>
+                                </div>
+                                <div class="child-stat-row" style="margin-top:6px">
+                                    <span class="child-stat-label">Gioi han hom nay</span>
+                                    <span class="child-stat-value">4h 00m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#D1FAE5;color:var(--success)">✅</div>
+                                App Duoc Phep Su Dung
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#4CAF50;color:white">💬</div>
+                                <div class="app-info">
+                                    <div class="app-name">Zalo</div>
+                                    <div class="app-time">Khong gioi han</div>
+                                </div>
+                                <div class="app-status allowed">Mo</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#2196F3;color:white">📚</div>
+                                <div class="app-info">
+                                    <div class="app-name">Google Classroom</div>
+                                    <div class="app-time">Khong gioi han</div>
+                                </div>
+                                <div class="app-status allowed">Mo</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#FF6B6B;color:white">▶️</div>
+                                <div class="app-info">
+                                    <div class="app-name">YouTube</div>
+                                    <div class="app-time">Con 15 phut</div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width:75%;background:var(--warning)"></div></div>
+                                </div>
+                                <div class="app-status limited">15m</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon" style="background:#FF9800;color:white">📸</div>
+                                <div class="app-info">
+                                    <div class="app-name">Instagram</div>
+                                    <div class="app-time">Con 18 phut</div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width:40%;background:var(--success)"></div></div>
+                                </div>
+                                <div class="app-status limited">18m</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#EEF2FF;color:var(--primary)">📩</div>
+                                Yeu Cau Cho Cha Me
+                            </div>
+                            <div style="text-align:center;padding:16px">
+                                <div style="font-size:36px;margin-bottom:8px">📱</div>
+                                <div style="font-size:13px;font-weight:600;margin-bottom:4px">Muon cai app moi?</div>
+                                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">Gui yeu cau den bo me de duyet</div>
+                                <div style="background:var(--primary);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;display:inline-block;cursor:pointer">Gui Yeu Cau</div>
+                            </div>
+                            <div class="alert-item" style="background:#FEF3C7;border-left-color:var(--warning)">
+                                <span class="alert-icon">⏳</span>
+                                <span class="alert-text">Yeu cau <b>Snapchat</b> - Dang cho duyet</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">
+                                <div class="icon" style="background:#FEF3C7;color:var(--warning)">⏰</div>
+                                Lich Trinh Hom Nay
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time"><div class="time">7:30</div><div class="period">SANG</div></div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Gio hoc</div>
+                                    <div class="schedule-detail" style="color:var(--success)">✓ Da hoan thanh</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time" style="background:#D1FAE5"><div class="time" style="color:var(--success)">16:00</div><div class="period" style="color:var(--success)">NOW</div></div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name" style="color:var(--success)">Gio tu do ← Ban dang day</div>
+                                    <div class="schedule-detail">Con 1h 30m</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time"><div class="time">21:00</div><div class="period">TOI</div></div>
+                                <div class="schedule-info">
+                                    <div class="schedule-name">Gio ngu - Khoa thiet bi</div>
+                                    <div class="schedule-detail">Tu dong khoa man hinh</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1.5px solid #F59E0B">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <span style="font-size:28px">⏱️</span>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:#92400E">Xin them thoi gian?</div>
+                                    <div style="font-size:11px;color:#B45309">Gui yeu cau them 30 phut cho bo me</div>
+                                </div>
+                                <div style="margin-left:auto;background:#F59E0B;color:white;padding:6px 12px;border-radius:15px;font-size:11px;font-weight:600;cursor:pointer">Gui</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lock Screen -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">2. Lock Screen</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="lock-overlay">
+                            <div class="lock-icon-big">🔒</div>
+                            <div class="lock-title">Thiet Bi Da Bi Khoa</div>
+                            <div class="lock-msg">Da het thoi gian su dung hom nay.<br>Hay nghi ngoi va lam bai tap nhe!</div>
+                            <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:16px;width:100%;margin-bottom:24px">
+                                <div style="font-size:12px;opacity:0.7;margin-bottom:4px">Se mo khoa sau</div>
+                                <div style="font-size:36px;font-weight:800;letter-spacing:2px">06:30</div>
+                                <div style="font-size:12px;opacity:0.7;margin-top:2px">Sang mai (Thu 5)</div>
+                            </div>
+                            <div class="lock-btn">📩 Xin Bo Me Mo Khoa</div>
+                            <div style="margin-top:12px;font-size:11px;opacity:0.5">Chi co the goi dien khan cap</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Limit Warning -->
+            <div class="mockup-wrapper">
+                <div class="mockup-label">3. Canh Bao Thoi Gian</div>
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div style="height:100%;background:linear-gradient(180deg,#1E1B4B 0%,#312E81 100%);display:flex;flex-direction:column">
+                            <!-- Simulating child using YouTube then warning pops up -->
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px">
+                                <div style="background:rgba(255,255,255,0.95);border-radius:20px;padding:28px;text-align:center;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+                                    <div style="font-size:48px;margin-bottom:12px">⏰</div>
+                                    <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px">Sap Het Thoi Gian!</div>
+                                    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">Con <b style="color:var(--danger);font-size:18px">5 phut</b> su dung YouTube</div>
+
+                                    <div style="background:#FEF3C7;border-radius:12px;padding:12px;margin-bottom:16px">
+                                        <div style="font-size:11px;color:#92400E;font-weight:600">Thoi gian su dung hom nay</div>
+                                        <div style="font-size:24px;font-weight:800;color:#B45309;margin:4px 0">55 phut / 1h</div>
+                                        <div class="progress-bar" style="height:6px;background:#FDE68A">
+                                            <div class="progress-fill" style="width:92%;background:#F59E0B"></div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex;gap:8px">
+                                        <div style="flex:1;background:var(--primary);color:white;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">OK, Hieu roi</div>
+                                        <div style="flex:1;background:#F1F5F9;color:var(--text);padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">Xin them gio</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== FEATURES ========== -->
+    <div id="features" class="section">
+        <h1 class="section-title">Chi Tiet Tinh Nang</h1>
+        <p class="section-desc">Mo ta chi tiet cac tinh nang chinh cua FamilyGuard</p>
+
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>🔒 Device Lock/Unlock</h3>
+                <ul>
+                    <li>📌 Khoa man hinh tu xa ngay lap tuc</li>
+                    <li>📌 Mo khoa tu xa hoac theo lich hen gio</li>
+                    <li>📌 Chon che do khoa: hoan toan / chi cho phep goi khan cap / chi hoc tap</li>
+                    <li>📌 Tu dong khoa theo lich (gio ngu, gio hoc)</li>
+                    <li>📌 Con co the gui yeu cau mo khoa cho cha me</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>📱 App Management</h3>
+                <ul>
+                    <li>📌 Xem danh sach tat ca app da cai tren thiet bi con</li>
+                    <li>📌 Cho phep / Chan tung app cu the</li>
+                    <li>📌 Gioi han thoi gian su dung moi app</li>
+                    <li>📌 Phan loai app theo nhom (Hoc tap, Giai tri, MXH...)</li>
+                    <li>📌 Duyet yeu cau cai app moi tu con</li>
+                    <li>📌 Chan go cai dat app FamilyGuard</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🌐 Web Filtering</h3>
+                <ul>
+                    <li>📌 Whitelist - Chi cho phep website cha me duyet</li>
+                    <li>📌 Blacklist - Chan website cu the</li>
+                    <li>📌 Loc theo danh muc (Giao duc, Giai tri, MXH, 18+...)</li>
+                    <li>📌 Safe Search tren Google, Bing, YouTube</li>
+                    <li>📌 Chan quang cao khong phu hop</li>
+                    <li>📌 AI-powered content detection (nhan dien noi dung xau)</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>📊 Usage Monitoring</h3>
+                <ul>
+                    <li>📌 Bao cao thoi gian su dung theo ngay / tuan / thang</li>
+                    <li>📌 Top app su dung nhieu nhat</li>
+                    <li>📌 Lich su web da truy cap</li>
+                    <li>📌 So sanh thoi gian hoc tap vs giai tri</li>
+                    <li>📌 Xu huong su dung (tang / giam)</li>
+                    <li>📌 Email bao cao hang ngay cho cha me</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>📍 Location Tracking</h3>
+                <ul>
+                    <li>📌 Vi tri real-time tren ban do</li>
+                    <li>📌 Tao vung an toan (Geofence) - Nha, Truong, Lop hoc them</li>
+                    <li>📌 Thong bao khi con vao/roi vung an toan</li>
+                    <li>📌 Lich su di chuyen trong ngay</li>
+                    <li>📌 Nut SOS khan cap cho con</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>⏰ Schedule & Rules</h3>
+                <ul>
+                    <li>📌 Tao lich su dung theo ngay trong tuan</li>
+                    <li>📌 Che do Gio hoc (chi app hoc tap)</li>
+                    <li>📌 Che do Gio ngu (khoa hoan toan)</li>
+                    <li>📌 Che do Cuoi tuan (noi long hon)</li>
+                    <li>📌 Che do Ky thi (siet chat gioi han)</li>
+                    <li>📌 Template lich co san theo do tuoi</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== ARCHITECTURE ========== -->
+    <div id="architecture" class="section">
+        <h1 class="section-title">Kien Truc He Thong</h1>
+        <p class="section-desc">Technical architecture cho FamilyGuard - Cross-platform</p>
+
+        <div class="arch-diagram">
+            <h3>System Architecture Overview</h3>
+            <div class="arch-layers">
+                <div class="arch-layer layer-client">
+                    <div class="arch-layer-title">CLIENT LAYER</div>
+                    <div class="arch-boxes">
+                        <div class="arch-box">Parent App<small>React Native</small></div>
+                        <div class="arch-box">Child App<small>React Native + Native Modules</small></div>
+                        <div class="arch-box">Web Dashboard<small>React.js (optional)</small></div>
+                    </div>
+                </div>
+                <div class="arch-arrow">↕️ REST API + WebSocket + Push Notifications</div>
+                <div class="arch-layer layer-api">
+                    <div class="arch-layer-title">API GATEWAY</div>
+                    <div class="arch-boxes">
+                        <div class="arch-box">API Gateway<small>Kong / AWS API GW</small></div>
+                        <div class="arch-box">Auth Service<small>JWT + OAuth2</small></div>
+                        <div class="arch-box">Rate Limiter<small>Redis</small></div>
+                        <div class="arch-box">Load Balancer<small>Nginx / ALB</small></div>
+                    </div>
+                </div>
+                <div class="arch-arrow">↕️ gRPC / Internal API</div>
+                <div class="arch-layer layer-services">
+                    <div class="arch-layer-title">MICROSERVICES</div>
+                    <div class="arch-boxes">
+                        <div class="arch-box">User Service<small>Account, Family</small></div>
+                        <div class="arch-box">Device Service<small>Lock, Status</small></div>
+                        <div class="arch-box">App Control<small>Allow, Block, Limit</small></div>
+                        <div class="arch-box">Web Filter<small>URL, Category</small></div>
+                        <div class="arch-box">Location Service<small>GPS, Geofence</small></div>
+                        <div class="arch-box">Schedule Service<small>Rules, Cron</small></div>
+                        <div class="arch-box">Report Service<small>Analytics, Chart</small></div>
+                        <div class="arch-box">Notification<small>FCM, APNS, Email</small></div>
+                    </div>
+                </div>
+                <div class="arch-arrow">↕️ Read/Write</div>
+                <div class="arch-layer layer-data">
+                    <div class="arch-layer-title">DATA LAYER</div>
+                    <div class="arch-boxes">
+                        <div class="arch-box">PostgreSQL<small>Primary DB</small></div>
+                        <div class="arch-box">Redis<small>Cache, Session, Realtime</small></div>
+                        <div class="arch-box">MongoDB<small>Logs, Usage Data</small></div>
+                        <div class="arch-box">S3<small>Screenshots, Backups</small></div>
+                        <div class="arch-box">ClickHouse<small>Analytics</small></div>
+                    </div>
+                </div>
+                <div class="arch-arrow">↕️</div>
+                <div class="arch-layer layer-infra">
+                    <div class="arch-layer-title">INFRASTRUCTURE</div>
+                    <div class="arch-boxes">
+                        <div class="arch-box">AWS / GCP<small>Cloud Provider</small></div>
+                        <div class="arch-box">Docker + K8s<small>Container Orchestration</small></div>
+                        <div class="arch-box">CI/CD<small>GitHub Actions</small></div>
+                        <div class="arch-box">Monitoring<small>Datadog / Grafana</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>📱 Mobile Tech Stack</h3>
+                <ul>
+                    <li><span class="tech-tag">Framework</span> React Native (cross-platform)</li>
+                    <li><span class="tech-tag">State</span> Zustand / Redux Toolkit</li>
+                    <li><span class="tech-tag">Navigation</span> React Navigation 6</li>
+                    <li><span class="tech-tag">Push</span> Firebase Cloud Messaging (FCM)</li>
+                    <li><span class="tech-tag">Maps</span> React Native Maps / Google Maps</li>
+                    <li><span class="tech-tag">Native Module</span> Device Policy Manager (Android) / MDM (iOS)</li>
+                    <li><span class="tech-tag">Realtime</span> Socket.io cho lock/unlock tuc thoi</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🖥️ Backend Tech Stack</h3>
+                <ul>
+                    <li><span class="tech-tag">Runtime</span> Node.js + TypeScript</li>
+                    <li><span class="tech-tag">Framework</span> NestJS (microservices)</li>
+                    <li><span class="tech-tag">Database</span> PostgreSQL (primary) + MongoDB (logs)</li>
+                    <li><span class="tech-tag">Cache</span> Redis (sessions, realtime state)</li>
+                    <li><span class="tech-tag">Queue</span> Bull / RabbitMQ cho background jobs</li>
+                    <li><span class="tech-tag">Auth</span> JWT + Refresh Token + PIN</li>
+                    <li><span class="tech-tag">Analytics</span> ClickHouse cho bao cao</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🔐 Bao Mat</h3>
+                <ul>
+                    <li>📌 End-to-end encryption cho du lieu vi tri</li>
+                    <li>📌 JWT + Refresh Token rotation</li>
+                    <li>📌 Parent PIN code xac thuc tren child device</li>
+                    <li>📌 HTTPS/TLS cho moi request</li>
+                    <li>📌 Device attestation (chong fake device)</li>
+                    <li>📌 COPPA/GDPR compliance cho du lieu tre em</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>⚡ Android-Specific</h3>
+                <ul>
+                    <li><span class="tech-tag">Device Admin</span> DevicePolicyManager API</li>
+                    <li><span class="tech-tag">Usage</span> UsageStatsManager</li>
+                    <li><span class="tech-tag">Lock</span> Accessibility Service + kiosk mode</li>
+                    <li><span class="tech-tag">VPN</span> Local VPN cho URL filtering</li>
+                    <li><span class="tech-tag">Background</span> Foreground Service (luon chay)</li>
+                    <li><span class="tech-tag">Anti-uninstall</span> Device Owner mode</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🍎 iOS-Specific</h3>
+                <ul>
+                    <li><span class="tech-tag">MDM</span> Mobile Device Management profile</li>
+                    <li><span class="tech-tag">Screen Time</span> Screen Time API (iOS 15+)</li>
+                    <li><span class="tech-tag">Filter</span> Content Filter / Network Extension</li>
+                    <li><span class="tech-tag">Family</span> FamilyControls framework</li>
+                    <li><span class="tech-tag">Managed</span> Managed App Configuration</li>
+                    <li><span class="tech-tag">Note</span> iOS han che hon Android, can MDM enrollment</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🔄 Communication Flow</h3>
+                <ul>
+                    <li><span class="tech-tag">Command</span> Parent gui lenh → API → Push → Child thuc thi</li>
+                    <li><span class="tech-tag">Report</span> Child gui usage data moi 5 phut</li>
+                    <li><span class="tech-tag">Lock</span> WebSocket cho lock/unlock (&lt;2s delay)</li>
+                    <li><span class="tech-tag">Alert</span> Child trigger → API → Push → Parent nhan</li>
+                    <li><span class="tech-tag">Location</span> GPS update moi 1-5 phut (tuy pin)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== DATABASE ========== -->
+    <div id="database" class="section">
+        <h1 class="section-title">Database Schema</h1>
+        <p class="section-desc">Cau truc co so du lieu chinh cua FamilyGuard</p>
+
+        <div class="tech-grid" style="grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));">
+            <div class="db-table">
+                <div class="db-table-header">👤 users</div>
+                <div class="db-field"><span class="db-field-name">id<span class="db-key">PK</span></span><span class="db-field-type">UUID</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">email</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Email dang nhap</span></div>
+                <div class="db-field"><span class="db-field-name">password_hash</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Bcrypt hash</span></div>
+                <div class="db-field"><span class="db-field-name">name</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Ten hien thi</span></div>
+                <div class="db-field"><span class="db-field-name">role</span><span class="db-field-type">ENUM</span><span class="db-field-desc">parent | child</span></div>
+                <div class="db-field"><span class="db-field-name">family_id</span><span class="db-field-type">UUID<span class="db-key">FK</span></span><span class="db-field-desc">Nhom gia dinh</span></div>
+                <div class="db-field"><span class="db-field-name">parent_pin</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">PIN cha me (hash)</span></div>
+                <div class="db-field"><span class="db-field-name">plan</span><span class="db-field-type">ENUM</span><span class="db-field-desc">free | premium | family</span></div>
+                <div class="db-field"><span class="db-field-name">created_at</span><span class="db-field-type">TIMESTAMP</span><span class="db-field-desc"></span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">📱 devices</div>
+                <div class="db-field"><span class="db-field-name">id<span class="db-key">PK</span></span><span class="db-field-type">UUID</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">child_id</span><span class="db-field-type">UUID<span class="db-key">FK</span></span><span class="db-field-desc">→ users.id</span></div>
+                <div class="db-field"><span class="db-field-name">name</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">iPhone 14, Samsung A54...</span></div>
+                <div class="db-field"><span class="db-field-name">platform</span><span class="db-field-type">ENUM</span><span class="db-field-desc">android | ios</span></div>
+                <div class="db-field"><span class="db-field-name">os_version</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">iOS 17, Android 14...</span></div>
+                <div class="db-field"><span class="db-field-name">is_locked</span><span class="db-field-type">BOOLEAN</span><span class="db-field-desc">Trang thai khoa</span></div>
+                <div class="db-field"><span class="db-field-name">is_online</span><span class="db-field-type">BOOLEAN</span><span class="db-field-desc">Online/Offline</span></div>
+                <div class="db-field"><span class="db-field-name">battery</span><span class="db-field-type">INT</span><span class="db-field-desc">% pin hien tai</span></div>
+                <div class="db-field"><span class="db-field-name">fcm_token</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Push notification token</span></div>
+                <div class="db-field"><span class="db-field-name">last_seen</span><span class="db-field-type">TIMESTAMP</span><span class="db-field-desc">Lan cuoi online</span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">📦 app_rules</div>
+                <div class="db-field"><span class="db-field-name">id<span class="db-key">PK</span></span><span class="db-field-type">UUID</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">device_id</span><span class="db-field-type">UUID<span class="db-key">FK</span></span><span class="db-field-desc">→ devices.id</span></div>
+                <div class="db-field"><span class="db-field-name">package_name</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">com.youtube.app</span></div>
+                <div class="db-field"><span class="db-field-name">app_name</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Ten hien thi app</span></div>
+                <div class="db-field"><span class="db-field-name">status</span><span class="db-field-type">ENUM</span><span class="db-field-desc">allowed | blocked | limited</span></div>
+                <div class="db-field"><span class="db-field-name">daily_limit_min</span><span class="db-field-type">INT</span><span class="db-field-desc">Gioi han phut/ngay</span></div>
+                <div class="db-field"><span class="db-field-name">category</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">education, social, game...</span></div>
+                <div class="db-field"><span class="db-field-name">allowed_days</span><span class="db-field-type">VARCHAR[]</span><span class="db-field-desc">Ngay cho phep (mon-sun)</span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">🌐 web_rules</div>
+                <div class="db-field"><span class="db-field-name">id<span class="db-key">PK</span></span><span class="db-field-type">UUID</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">device_id</span><span class="db-field-type">UUID<span class="db-key">FK</span></span><span class="db-field-desc">→ devices.id</span></div>
+                <div class="db-field"><span class="db-field-name">url_pattern</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">*.facebook.com</span></div>
+                <div class="db-field"><span class="db-field-name">category</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">education, social, adult...</span></div>
+                <div class="db-field"><span class="db-field-name">action</span><span class="db-field-type">ENUM</span><span class="db-field-desc">allow | block | warn</span></div>
+                <div class="db-field"><span class="db-field-name">safe_search</span><span class="db-field-type">BOOLEAN</span><span class="db-field-desc">Bat Safe Search</span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">⏰ schedules</div>
+                <div class="db-field"><span class="db-field-name">id<span class="db-key">PK</span></span><span class="db-field-type">UUID</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">device_id</span><span class="db-field-type">UUID<span class="db-key">FK</span></span><span class="db-field-desc">→ devices.id</span></div>
+                <div class="db-field"><span class="db-field-name">name</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Gio hoc, Gio ngu...</span></div>
+                <div class="db-field"><span class="db-field-name">start_time</span><span class="db-field-type">TIME</span><span class="db-field-desc">07:30:00</span></div>
+                <div class="db-field"><span class="db-field-name">end_time</span><span class="db-field-type">TIME</span><span class="db-field-desc">16:00:00</span></div>
+                <div class="db-field"><span class="db-field-name">days</span><span class="db-field-type">VARCHAR[]</span><span class="db-field-desc">[mon,tue,wed,thu,fri]</span></div>
+                <div class="db-field"><span class="db-field-name">mode</span><span class="db-field-type">ENUM</span><span class="db-field-desc">lock | study | free | custom</span></div>
+                <div class="db-field"><span class="db-field-name">allowed_apps</span><span class="db-field-type">UUID[]</span><span class="db-field-desc">App duoc phep trong khung gio</span></div>
+                <div class="db-field"><span class="db-field-name">is_active</span><span class="db-field-type">BOOLEAN</span><span class="db-field-desc">Bat/Tat schedule</span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">📊 usage_logs (MongoDB)</div>
+                <div class="db-field"><span class="db-field-name">_id</span><span class="db-field-type">ObjectId</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">device_id</span><span class="db-field-type">UUID</span><span class="db-field-desc">→ devices.id</span></div>
+                <div class="db-field"><span class="db-field-name">app_package</span><span class="db-field-type">String</span><span class="db-field-desc">com.youtube.app</span></div>
+                <div class="db-field"><span class="db-field-name">start_time</span><span class="db-field-type">DateTime</span><span class="db-field-desc">Bat dau su dung</span></div>
+                <div class="db-field"><span class="db-field-name">end_time</span><span class="db-field-type">DateTime</span><span class="db-field-desc">Ket thuc su dung</span></div>
+                <div class="db-field"><span class="db-field-name">duration_sec</span><span class="db-field-type">Int</span><span class="db-field-desc">Tong thoi gian (giay)</span></div>
+                <div class="db-field"><span class="db-field-name">urls_visited</span><span class="db-field-type">Array</span><span class="db-field-desc">URL da truy cap</span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">📍 locations (MongoDB)</div>
+                <div class="db-field"><span class="db-field-name">_id</span><span class="db-field-type">ObjectId</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">device_id</span><span class="db-field-type">UUID</span><span class="db-field-desc">→ devices.id</span></div>
+                <div class="db-field"><span class="db-field-name">lat</span><span class="db-field-type">Double</span><span class="db-field-desc">Vi do</span></div>
+                <div class="db-field"><span class="db-field-name">lng</span><span class="db-field-type">Double</span><span class="db-field-desc">Kinh do</span></div>
+                <div class="db-field"><span class="db-field-name">address</span><span class="db-field-type">String</span><span class="db-field-desc">Dia chi reverse geocoded</span></div>
+                <div class="db-field"><span class="db-field-name">in_safe_zone</span><span class="db-field-type">Boolean</span><span class="db-field-desc">Dang trong vung an toan?</span></div>
+                <div class="db-field"><span class="db-field-name">zone_name</span><span class="db-field-type">String</span><span class="db-field-desc">Nha / Truong / ...</span></div>
+                <div class="db-field"><span class="db-field-name">timestamp</span><span class="db-field-type">DateTime</span><span class="db-field-desc">Thoi diem ghi nhan</span></div>
+            </div>
+
+            <div class="db-table">
+                <div class="db-table-header">🔔 notifications</div>
+                <div class="db-field"><span class="db-field-name">id<span class="db-key">PK</span></span><span class="db-field-type">UUID</span><span class="db-field-desc">Primary key</span></div>
+                <div class="db-field"><span class="db-field-name">user_id</span><span class="db-field-type">UUID<span class="db-key">FK</span></span><span class="db-field-desc">→ users.id (parent)</span></div>
+                <div class="db-field"><span class="db-field-name">type</span><span class="db-field-type">ENUM</span><span class="db-field-desc">alert | request | report</span></div>
+                <div class="db-field"><span class="db-field-name">title</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">Tieu de thong bao</span></div>
+                <div class="db-field"><span class="db-field-name">body</span><span class="db-field-type">TEXT</span><span class="db-field-desc">Noi dung chi tiet</span></div>
+                <div class="db-field"><span class="db-field-name">is_read</span><span class="db-field-type">BOOLEAN</span><span class="db-field-desc">Da doc chua</span></div>
+                <div class="db-field"><span class="db-field-name">action_type</span><span class="db-field-type">VARCHAR</span><span class="db-field-desc">approve_app, view_location...</span></div>
+                <div class="db-field"><span class="db-field-name">created_at</span><span class="db-field-type">TIMESTAMP</span><span class="db-field-desc"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== API ========== -->
+    <div id="api" class="section">
+        <h1 class="section-title">API Endpoints</h1>
+        <p class="section-desc">RESTful API design cho FamilyGuard backend</p>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">🔐 Authentication</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/auth/register</td><td>Dang ky tai khoan parent</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/auth/login</td><td>Dang nhap</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/auth/refresh</td><td>Lam moi token</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/auth/verify-pin</td><td>Xac thuc PIN cha me</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/auth/child/pair</td><td>Ghep doi thiet bi con (QR code)</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">📱 Device Management</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices</td><td>Danh sach thiet bi con</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/status</td><td>Trang thai thiet bi (online, pin, lock)</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/lock</td><td>Khoa man hinh tu xa</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/unlock</td><td>Mo khoa man hinh tu xa</td></tr>
+                <tr><td><span class="method put">PUT</span></td><td class="endpoint">/api/devices/:id/settings</td><td>Cap nhat cai dat thiet bi</td></tr>
+                <tr><td><span class="method delete">DEL</span></td><td class="endpoint">/api/devices/:id</td><td>Xoa/huy ghep doi thiet bi</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">📦 App Control</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/apps</td><td>Danh sach app tren thiet bi</td></tr>
+                <tr><td><span class="method put">PUT</span></td><td class="endpoint">/api/devices/:id/apps/:pkg/rule</td><td>Dat rule cho app (allow/block/limit)</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/apps/requests</td><td>Yeu cau cai dat app moi tu con</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/apps/requests/:rid/approve</td><td>Duyet yeu cau cai app</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/apps/requests/:rid/reject</td><td>Tu choi yeu cau cai app</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">🌐 Web Filter</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/web-rules</td><td>Danh sach rule web</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/web-rules</td><td>Them rule moi (whitelist/blacklist)</td></tr>
+                <tr><td><span class="method put">PUT</span></td><td class="endpoint">/api/devices/:id/web-rules/:rid</td><td>Cap nhat rule web</td></tr>
+                <tr><td><span class="method put">PUT</span></td><td class="endpoint">/api/devices/:id/web-filter/settings</td><td>Cai dat bo loc (safe search, ad block)</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/web-history</td><td>Lich su web da truy cap</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">⏰ Schedules</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/schedules</td><td>Danh sach lich su dung</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/schedules</td><td>Tao lich moi</td></tr>
+                <tr><td><span class="method put">PUT</span></td><td class="endpoint">/api/devices/:id/schedules/:sid</td><td>Cap nhat lich</td></tr>
+                <tr><td><span class="method delete">DEL</span></td><td class="endpoint">/api/devices/:id/schedules/:sid</td><td>Xoa lich</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">📍 Location</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/location</td><td>Vi tri hien tai</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/location/history</td><td>Lich su di chuyen</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/geofences</td><td>Danh sach vung an toan</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/devices/:id/geofences</td><td>Tao vung an toan moi</td></tr>
+                <tr><td><span class="method put">PUT</span></td><td class="endpoint">/api/devices/:id/geofences/:gid</td><td>Cap nhat vung an toan</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">📊 Reports & Usage</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/usage/today</td><td>Su dung hom nay</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/usage/weekly</td><td>Bao cao tuan</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/usage/monthly</td><td>Bao cao thang</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/devices/:id/usage/apps</td><td>Usage theo tung app</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/child/usage/sync</td><td>Child gui usage data len server</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/child/location/update</td><td>Child gui vi tri len server</td></tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:24px">
+            <h3 style="margin-bottom:12px">🔔 Child-side APIs</h3>
+            <table class="api-table">
+                <tr><th>Method</th><th>Endpoint</th><th>Mo ta</th></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/api/child/rules</td><td>Lay tat ca rules (app, web, schedule)</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/child/request-unlock</td><td>Gui yeu cau mo khoa cho parent</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/child/request-app</td><td>Gui yeu cau cai app moi</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/child/request-time</td><td>Gui yeu cau them thoi gian</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/api/child/sos</td><td>Nut SOS khan cap</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========== USER FLOW ========== -->
+    <div id="flow" class="section">
+        <h1 class="section-title">User Flow Diagrams</h1>
+        <p class="section-desc">Cac luong su dung chinh cua FamilyGuard</p>
+
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>1. Onboarding Flow</h3>
+                <div class="flow-container">
+                    <div class="flow-step start">Parent tai app & Dang ky</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Tao ho so con (Ten, Tuoi)</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Tai Child App len thiet bi con</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step action">Quet QR Code de ghep doi</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Chon template (theo tuoi)</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Cap quyen: Location, Usage, Admin</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step action">Hoan tat! Bat dau su dung</div>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h3>2. Lock/Unlock Flow</h3>
+                <div class="flow-container">
+                    <div class="flow-step start">Parent nhan "Khoa" tren app</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">API nhan lenh → Push to Child</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step action">Child nhan Push Notification</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Child App hien Lock Screen</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step decision">Con nhan "Xin Mo Khoa"?</div>
+                    <div class="flow-arrow">↓ Co</div>
+                    <div class="flow-step">Parent nhan thong bao yeu cau</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step decision">Parent dong y?</div>
+                    <div class="flow-arrow">↓ Co</div>
+                    <div class="flow-step action">API gui lenh Unlock → Child mo khoa</div>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h3>3. App Request Flow</h3>
+                <div class="flow-container">
+                    <div class="flow-step start">Con muon cai app moi</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Gui yeu cau qua FamilyGuard</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step action">Parent nhan Push thong bao</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step decision">Xem thong tin app & Quyet dinh</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step action">Duyet: App tu cai dat + set rule</div>
+                    <div class="flow-label">hoac</div>
+                    <div class="flow-step end">Tu choi: Gui ly do cho con</div>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h3>4. Web Filter Flow</h3>
+                <div class="flow-container">
+                    <div class="flow-step start">Con truy cap website</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Local VPN / Content Filter kiem tra URL</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step decision">URL co trong whitelist?</div>
+                    <div class="flow-arrow">↓ Khong</div>
+                    <div class="flow-step decision">URL nam trong category bi chan?</div>
+                    <div class="flow-arrow">↓ Co</div>
+                    <div class="flow-step end">Hien trang "Website bi chan"</div>
+                    <div class="flow-label">Gui alert den parent</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step">Parent nhan canh bao ve web bi chan</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+        document.getElementById(sectionId).classList.add('active');
+        event.target.classList.add('active');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function closeGame() {
-      overlay.classList.remove('active');
-      gameIframe.src = '';
-    }
-
-    url.forEach((link, i) => {
-      const div = document.createElement('div');
-      div.className = 'game-item';
-      div.onclick = function() { openGame(link); };
-      div.innerHTML =
-        '<img src="icon/' + (i + 1) + '.png" alt="' + link + '">';
-      grid.appendChild(div);
+    // Toggle switches
+    document.querySelectorAll('.toggle-switch').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            this.classList.toggle('on');
+            this.classList.toggle('off');
+        });
     });
-  </script>
+
+    // Quick action click effect
+    document.querySelectorAll('.quick-action').forEach(action => {
+        action.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
+        });
+    });
+</script>
+
 </body>
 </html>
